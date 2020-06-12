@@ -1,5 +1,5 @@
 # ChannelBox
-ChannelBox is a convenient tool for Starlette framework that allows you send messages to groups of channels.
+ChannelBox is a simple tool for Starlette framework that allows you send messages to groups of channels.
 
 Example of use:
 - chats
@@ -59,7 +59,7 @@ html = """
         <script>
             var ws = new WebSocket("ws://localhost/chat_ws");
             ws.onmessage = function(event) {
-                console.log('Message recivied %s', event.data)
+                console.log('Message receivied %s', event.data)
                 var messages = document.getElementById('messages');
                 var message = document.createElement('li');
                 var data = JSON.parse(event.data);
@@ -137,7 +137,7 @@ self.group_send('alert_channel_1', {"a": "New User", "message": "Hello world"})
 ```
 
 
-# Global functions
+# ChannelBox functions
 Send message to group from any part of your code:
 ```no-highlight
 await group_send('my_chat_1', {"username": "New User", "message": "Hello world"})
