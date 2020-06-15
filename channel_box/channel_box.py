@@ -4,10 +4,58 @@ from simple_print.functions import sprint_f
 from starlette.endpoints import WebSocketEndpoint
 
 
-CHANNEL_GROUPS = {}
+class ChannelGroups:
+
+    def __init__(self):
+        self.created = time.time()  
+
+    _CHANNEL_GROUPS = {} 
+    created = None
+
+    async def group_send(self, group, payload):
+        self.clean_expired()
+        for channel in self._CHANNEL_GROUPS.get(group, {}):
+            await channel.send(payload)
+
+    def groups_show(self):
+        if self._CHANNEL_GROUPS:
+            for group in self._CHANNEL_GROUPS:
+                sprint_f(f"\n{group}", "green")
+                for channel in self._CHANNEL_GROUPS.get(group, {}):
+                    sprint_f(channel, "cyan")
+                    if channel.is_expired():
+                        sprint_f("expired", "red")
+        else:
+            sprint_f("Channel groups is empty", "yellow")    
+
+    def groups_flush(self):
+        self._CHANNEL_GROUPS = {}
+
+    def group_add(self, group, channel):
+        self._CHANNEL_GROUPS.setdefault(group, {})
+        self._CHANNEL_GROUPS[group][channel] = ""
+
+    def remove_channel(self, channel):
+        for group in self._CHANNEL_GROUPS:
+            if channel in self._CHANNEL_GROUPS[group]:
+                del self._CHANNEL_GROUPS[group][channel]
+                if not any(self._CHANNEL_GROUPS[group]):
+                    del self._CHANNEL_GROUPS[group]            
+
+    def clean_expired(self):
+        for group in self._CHANNEL_GROUPS:
+            for channel in self._CHANNEL_GROUPS.get(group, {}):
+                if channel.is_expired():
+                    del self._CHANNEL_GROUPS[group][channel]
+                    if not any(self._CHANNEL_GROUPS[group]):
+                        del self._CHANNEL_GROUPS[group]            
+
+
+channel_groups = ChannelGroups()
 
 
 class Channel:
+
     def __init__(self, websocket, expires, encoding):
         self.channel_uuid = str(uuid.uuid1())
         self.websocket = websocket
@@ -15,19 +63,31 @@ class Channel:
         self.encoding = encoding
         self.created = time.time()
 
-    async def _send(self, payload):
+    async def send(self, payload):
         websocket = self.websocket
         if self.encoding == "json":
-            await websocket.send_json(payload)
+            try:
+                await websocket.send_json(payload)
+            except RuntimeError:
+                pass
         elif self.encoding == "text":
-            await websocket.send_text(payload)
+            try:
+                await websocket.send_text(payload)
+            except RuntimeError:
+                pass               
         elif self.encoding == "bytes":
-            await websocket.send_bytes(payload)
+            try:
+                await websocket.send_bytes(payload)
+            except RuntimeError:
+                pass                   
         else:
-            await websocket.send(payload)
+            try:
+                await websocket.send(payload)
+            except RuntimeError:
+                pass                   
         self.created = time.time()
 
-    def _is_expired(self):
+    def is_expired(self):
         return self.expires + int(self.created) < time.time()
 
     def __repr__(self):
@@ -35,11 +95,12 @@ class Channel:
 
 
 class ChannelEndpoint(WebSocketEndpoint):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.expires = 60 * 60 * 24  
         self.encoding = "json"
-        self.groups = CHANNEL_GROUPS
+        self.channel_groups = channel_groups
 
     async def on_connect(self, websocket, **kwargs):
         await super().on_connect(websocket, **kwargs)
@@ -47,50 +108,16 @@ class ChannelEndpoint(WebSocketEndpoint):
 
     async def on_disconnect(self, websocket, close_code):
         await super().on_disconnect(websocket, close_code)
-        await self._remove(self.channel)
 
+    async def group_send(self, payload):
+        await self.channel_groups.group_send(self.group, payload)
 
-    async def _remove(self, channel):
-        for group in self.groups:
-            if channel in self.groups[group]:
-                del self.groups[group][channel]
+    def get_or_create(self, group):
+        assert self._validate_name(group), "Invalid group name"
+        self.channel_groups.group_add(group, self.channel)
+        self.group = group
 
-    async def _validate_name(self, name):
+    def _validate_name(self, name):
         if name.isidentifier():
             return True
         raise TypeError("Group names must be valid python identifier only alphanumerics and underscores are accepted")
-
-    async def _clean_expired(self):
-        for group in self.groups:
-            for channel in self.groups.get(group, {}):
-                if channel._is_expired():
-                    del self.groups[group][channel]
-
-    async def get_or_create(self, group):
-        assert await self._validate_name(group), "Invalid group name"
-        self.groups.setdefault(group, {})
-        self.groups[group][self.channel] = ""
-        self.group = group
-
-    async def group_send(self, payload):
-        await self._clean_expired()
-        for channel in self.groups.get(self.group, {}):
-            await channel._send(payload)
-
-
-async def group_send(group, payload):
-    for channel_group in CHANNEL_GROUPS:
-        if channel_group == group:
-            for channel in CHANNEL_GROUPS.get(group, {}):
-                await channel._send(payload)
-
-def groups_show():
-    for group in CHANNEL_GROUPS:
-        sprint_f(f"\n{group}", "green")
-        for channel in CHANNEL_GROUPS.get(group, {}):
-            sprint_f(channel, "cyan")
-            if channel._is_expired():
-                sprint_f("expired", "red")
-
-def groups_flush():
-    CHANNEL_GROUPS = {}
