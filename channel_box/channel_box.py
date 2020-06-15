@@ -108,6 +108,7 @@ class ChannelEndpoint(WebSocketEndpoint):
 
     async def on_disconnect(self, websocket, close_code):
         await super().on_disconnect(websocket, close_code)
+        self.channel_groups.remove_channel(self.channel)
 
     async def group_send(self, payload):
         await self.channel_groups.group_send(self.group, payload)
