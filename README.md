@@ -155,8 +155,8 @@ channel_groups.groups_flush()
 # Working example 
 https://github.com/Sobolev5/starlette-vue-backend/tree/master/apps/chat
 
-https://svue-backend.andrey-sobolev.ru//chat/chat1/
+https://svue-backend.andrey-sobolev.ru/chat/chat1/
 
-https://svue-backend.andrey-sobolev.ru//chat/chat2/
+https://svue-backend.andrey-sobolev.ru/chat/chat2/
 
 
