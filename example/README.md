@@ -3,6 +3,7 @@
 > uvicorn app:app --reload --port 5050  
 
 > yourhostname.com/chat/chat1
+
 > yourhostname.com/chat/chat2
 
 ```console
