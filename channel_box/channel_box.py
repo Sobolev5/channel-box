@@ -1,13 +1,14 @@
 import time
 import uuid
-from simple_print.functions import sprint_f
+from simple_print import sprint
 from starlette.endpoints import WebSocketEndpoint
 
 
 class ChannelGroups:
 
-    def __init__(self):
-        self.created = time.time()  
+    def __init__(self, DEBUG=False): 
+        self.created = time.time()
+        self.DEBUG = DEBUG   
 
     _CHANNEL_GROUPS = {} 
     created = None
@@ -19,14 +20,18 @@ class ChannelGroups:
 
     def groups_show(self):
         if self._CHANNEL_GROUPS:
-            for group in self._CHANNEL_GROUPS:
-                sprint_f(f"\n{group}", "green")
+            for group in list(self._CHANNEL_GROUPS):
+                if self.DEBUG:
+                    sprint(f"\n{group}", "green")
                 for channel in self._CHANNEL_GROUPS.get(group, {}):
-                    sprint_f(channel, "cyan")
+                    if self.DEBUG:
+                        sprint(channel, c="cyan", b="on_white")
                     if channel.is_expired():
-                        sprint_f("expired", "red")
+                        if self.DEBUG:
+                            sprint("expired", c="red", b="on_white")
         else:
-            sprint_f("Channel groups is empty", "yellow")    
+            if self.DEBUG:
+                sprint("Channel groups is empty", c="red", b="on_white")   
 
     def groups_flush(self):
         self._CHANNEL_GROUPS = {}
@@ -36,14 +41,14 @@ class ChannelGroups:
         self._CHANNEL_GROUPS[group][channel] = ""
 
     def remove_channel(self, channel):
-        for group in self._CHANNEL_GROUPS:
+        for group in list(self._CHANNEL_GROUPS):
             if channel in self._CHANNEL_GROUPS[group]:
                 del self._CHANNEL_GROUPS[group][channel]
                 if not any(self._CHANNEL_GROUPS[group]):
                     del self._CHANNEL_GROUPS[group]            
 
     def clean_expired(self):
-        for group in self._CHANNEL_GROUPS:
+        for group in list(self._CHANNEL_GROUPS):
             for channel in self._CHANNEL_GROUPS.get(group, {}):
                 if channel.is_expired():
                     del self._CHANNEL_GROUPS[group][channel]
