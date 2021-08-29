@@ -1,8 +1,9 @@
-# channel-box chat example
+## channel-box chat example
+
 > uvicorn app:app --reload --port 5050  
 
-# yourhostname.com/chat/chat1
-# yourhostname.com/chat/chat2
+> yourhostname.com/chat/chat1
+> yourhostname.com/chat/chat2
 
 ```console
 nginx.conf
