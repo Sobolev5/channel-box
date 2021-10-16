@@ -6,32 +6,31 @@ from starlette.endpoints import WebSocketEndpoint
 
 class ChannelGroups:
 
-    def __init__(self, DEBUG=False): 
+    def __init__(self): 
         self.created = time.time()
-        self.DEBUG = DEBUG   
 
     _CHANNEL_GROUPS = {} 
     created = None
 
-    async def group_send(self, group, payload):
+    async def group_send(self, group, payload, debug=False):
         self.clean_expired()
         for channel in self._CHANNEL_GROUPS.get(group, {}):
             await channel.send(payload)
+            if debug:
+                sprint(f"Send successfully to group {group}", c="blue", b="on_white", s=1, p=1) 
+        if debug and not self._CHANNEL_GROUPS:
+            sprint("Channel groups is empty", c="red", b="on_white", s=1, p=1)  
 
     def groups_show(self):
         if self._CHANNEL_GROUPS:
             for group in list(self._CHANNEL_GROUPS):
-                if self.DEBUG:
-                    sprint(f"\n{group}", "green")
+                sprint(f"\n{group}", c="green", s=1, p=1)
                 for channel in self._CHANNEL_GROUPS.get(group, {}):
-                    if self.DEBUG:
-                        sprint(channel, c="cyan", b="on_white")
+                    sprint(channel, c="cyan", b="on_white", s=1, p=1)
                     if channel.is_expired():
-                        if self.DEBUG:
-                            sprint("expired", c="red", b="on_white")
+                        sprint("expired", c="red", b="on_white", s=1, p=1)
         else:
-            if self.DEBUG:
-                sprint("Channel groups is empty", c="red", b="on_white")   
+            sprint("Channel groups is empty", c="red", b="on_white", s=1, p=1)   
 
     def groups_flush(self):
         self._CHANNEL_GROUPS = {}
