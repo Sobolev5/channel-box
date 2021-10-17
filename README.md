@@ -17,18 +17,18 @@ To install run:
 pip install channel-box
 ```
 
-## [important] See full working example with websocket setup 
+## [important!] See full working example with websocket setup 
 ```no-highlight
 https://channel-box.andrey-sobolev.ru/channel/test/
 https://github.com/Sobolev5/channel-box/tree/master/example
 ```
 
-## [important] NGINX websocket setup
+## NGINX websocket setup
 ```no-highlight
 http://nginx.org/en/docs/http/websocket.html
 ```
 
-## [important] Install uvicorn with websocket support
+## Check uvicorn installation
 ```no-highlight
 pip install uvicorn[standard]
 ```
