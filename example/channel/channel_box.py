@@ -88,10 +88,7 @@ class ChannelBox:
             del self._CHANNELS[channel_name][channel]
 
         if not any(self._CHANNELS.get(channel_name, {})):
-            try:
-                del self._CHANNELS[channel_name]
-            except:
-                pass
+            del self._CHANNELS[channel_name]
 
         await self._clean_expired()
 
@@ -107,11 +104,8 @@ class ChannelBox:
                 if is_expired:
                     del self._CHANNELS[channel_name][channel]
 
-            if not any(self._CHANNELS.get(channel_name, {})):
-                try:
-                    del self._CHANNELS[channel_name]
-                except:
-                    pass
+            if not any(self._CHANNELS[channel_name]):
+                del self._CHANNELS[channel_name]
 
 
 channel_box = ChannelBox()

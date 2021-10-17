@@ -1,16 +1,13 @@
 from starlette.applications import Starlette
 from starlette.routing import Mount
-from chat.urls import routes as chat_routes
-from main.urls import routes as main_routes
-from settings import DEBUG
+from channel.urls import routes as channel_routes
 
 
 routes = [
-    Mount("/chat", routes=chat_routes),
-    Mount("/", routes=main_routes),
+    Mount("/", routes=channel_routes),
 ]
 
 
-app = Starlette(debug=DEBUG, routes=routes)
+app = Starlette(debug=True, routes=routes)
 
 
