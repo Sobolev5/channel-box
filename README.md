@@ -19,7 +19,7 @@ pip install channel-box
 
 ## [important!] See full working example with websocket setup 
 ```no-highlight
-https://channel-box.andrey-sobolev.ru/channel/test/
+https://channel-box.andrey-sobolev.ru/
 https://github.com/Sobolev5/channel-box/tree/master/example
 ```
 
