@@ -11,26 +11,29 @@ Example of use:
 https://github.com/Sobolev5/channel-box
 ```
 
-# Install
+## Install
 To install run:
 ```no-highlight
 pip install channel-box
 ```
 
-# [important] See full working example with websocket setup 
+## [important] See full working example with websocket setup 
+```no-highlight
 https://channel-box.andrey-sobolev.ru/channel/test/
 https://github.com/Sobolev5/channel-box/tree/master/example
+```
 
-# [important] NGINX websocket setup
+## [important] NGINX websocket setup
+```no-highlight
 http://nginx.org/en/docs/http/websocket.html
+```
 
-
-# [important] Install uvicorn with websocket support
+## [important] Install uvicorn with websocket support
 ```no-highlight
 pip install uvicorn[standard]
 ```
 
-# channel_box methods
+## channel_box methods
 
 Send message to any group from any part of your code:
 ```no-highlight
@@ -47,7 +50,7 @@ Flush all groups and channels:
 await channel_box.channels_flush()
 ```
 
-# Buy me a coffee [thanks]
+## Buy me a coffee [thanks]
 https://www.buymeacoffee.com/AndreySobolev
 
 
