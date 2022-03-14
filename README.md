@@ -50,11 +50,6 @@ Flush all groups and channels:
 await channel_box.channels_flush()
 ```
 
-## Buy me a coffee [thanks]
-```no-highlight
-0x6817b29f6a25B7BaE42158FAFad7b782415e4209 ETH
-TZ1Hs1tkpPJFrPzmvo8xtHEKErXniV3x21 TRC (TRON)
-```
 
 
 
