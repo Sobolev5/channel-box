@@ -3,7 +3,7 @@ import sys
 import setuptools
 
 __author__ = 'Sobolev Andrey <email.asobolev@gmail.com>'
-__version__ = '0.3.3'
+__version__ = '0.3.4'
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -11,7 +11,7 @@ with open("README.md", "r") as fh:
 setuptools.setup(
     name='channel-box',
     version=__version__,
-    install_requires=['simple_print>=1.5', 'starlette==0.16.0'],
+    install_requires=['simple_print>=1.1.0', 'starlette==0.16.0'],
     author='Sobolev Andrey',
     url="https://github.com/Sobolev5/channel-box",        
     author_email='email.asobolev@gmail.com',
