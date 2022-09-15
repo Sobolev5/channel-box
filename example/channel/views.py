@@ -1,47 +1,36 @@
-import pprint
-
+from simple_print import sprint
+from jinja2 import Template
 from channel_box import channel_box
 from channel_box import ChannelBoxEndpoint
 from starlette.responses import JSONResponse
 from starlette.endpoints import HTTPEndpoint
 from starlette.responses import HTMLResponse
+from settings import HOST
 
-
-class ChatChannel(ChannelBoxEndpoint):
+class Channel(ChannelBoxEndpoint):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.expires = 1600
+        self.expires = 16000
         self.encoding = "json"
 
     async def on_connect(self, websocket):
+        sprint('user_connected', c="green", p=True)
         channel_name = websocket.query_params.get("channel_name", "MySimpleChat")  # channel name */ws?channel_name=MySimpleChat
-        await self.channel_get_or_create(channel_name, websocket) # get or create channel
+        await self.channel_get_or_create(channel_name, websocket) 
         await websocket.accept()
 
     async def on_receive(self, websocket, data):
-
         message = data["message"]
-        username = data["username"]
-
-        await channel_box.channels_show()  # show all channels
-        
-        history = await channel_box.history_get("MySimpleChat") # get channel history
-        if history:
-            pprint.pprint(history)
-
+        username = data["username"]     
         if message.strip():
-
             payload = {
                 "username": username,
                 "message": message,
             }
-
-            await self.channel_send(payload, show=True, history=True)
-            # show=True - print message process
-            # history=True - write history
+            await self.channel_send(payload, history=True)
 
 
-html = """
+html_text = """
 <!DOCTYPE html>
 <html>
     <head>
@@ -54,6 +43,14 @@ html = """
             <div class="card">
                 <div class="card-header">
                     <h5 class="mt-2">MySimpleChat channel (open in different browsers)</h5>
+                    <h5>channel-box == 0.4.0</h5>
+                    <ul>
+                        <li><a href="http://{{ host }}/message" target="_blank">Send message from another view</a></li>
+                        <li><a href="http://{{ host }}/channels" target="_blank">Show channels</a></li>
+                        <li><a href="http://{{ host }}/channels-flush" target="_blank">Flush channels</a></li>
+                        <li><a href="http://{{ host }}/history" target="_blank">Show history</a></li>
+                        <li><a href="http://{{ host }}/history-flush" target="_blank">Flush history</a></li>
+                    </ul>
                 </div>
                 <div class"card-body">   
                     <div class="p-3">                 
@@ -76,7 +73,7 @@ html = """
                 </div>
             </div>
             <script>
-                var ws = new WebSocket("wss://channel-box.andrey-sobolev.ru/chat_ws?channel_name=MySimpleChat"); 
+                var ws = new WebSocket("wss://{{ host }}/chat_ws?channel_name=MySimpleChat"); 
                 ws.onopen = function(event) {
                     console.log('Connected to websocket. Channel MySimpleChat is open now.')
                 };
@@ -105,24 +102,36 @@ html = """
 </html>
 """
 
+class Chat(HTTPEndpoint):
+    async def get(self, request):   
+        template = Template(html_text)      
+        return HTMLResponse(template.render(host=HOST))
 
-class TestChatChannel(HTTPEndpoint):
-    async def get(self, request):           
-        return HTMLResponse(html)
+class Message(HTTPEndpoint):
+    async def get(self, request):     
+        await channel_box.channel_send(channel_name="MySimpleChat", payload={"username": "Message HTTPEndpoint", "message": "hello from Message"}, history=True)   
+        return JSONResponse({"message": "success"})
+
+class Channels(HTTPEndpoint):
+    async def get(self, request):                 
+        channels = await channel_box.channels()
+        return HTMLResponse(f"{channels}")
+
+class ChannelsFlush(HTTPEndpoint):
+    async def get(self, request):   
+        await channel_box.channels_flush()            
+        return JSONResponse({"flush": "success"})   
+
+class History(HTTPEndpoint):
+    async def get(self, request):      
+        history = await channel_box.history()
+        return HTMLResponse(f"{history}")
+
+class HistoryFlush(HTTPEndpoint):
+    async def get(self, request):  
+        await channel_box.history_flush()             
+        return JSONResponse({"flush": "success"})
 
 
-class SendFromAnotherPartOfCode(HTTPEndpoint):
-    async def get(self, request):       
-        # you can catch requests from RabbitMQ for example 
-        await channel_box.channel_send("MySimpleChat", {"username": "another part code", "message": "hello from SendFromAnotherPartCode"}, show=True, history=True)  # show all channels    
-        history = await channel_box.history_get("MySimpleChat") # get channel history
-        if history:
-            pprint.pprint(history)
-        return JSONResponse({"SendFromAnotherPartOfCode": "success"})
 
 
-class Flush(HTTPEndpoint):
-    async def get(self, request):    
-        await channel_box.channels_flush()  
-        await channel_box.channels_show()    
-        return JSONResponse({"Flush": "success"})

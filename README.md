@@ -1,8 +1,8 @@
-# ChannelBox
-ChannelBox it is a simple tool for Starlette framework that allows you send messages to named websocket channels.
+# channel-box
+`channel-box` it is a simple tool for Starlette framework that allows you send messages to named websocket channels.
 
 Example of use:
-- chats
+- group chats
 - notifications from backend
 - alerts 
 
@@ -17,44 +17,72 @@ To install run:
 pip install channel-box
 ```
 
-## [important!] See full working example with websocket setup 
-```no-highlight
+## [important!] see full working example `example/app.py`
+```sh
 https://channel-box.andrey-sobolev.ru/
 https://github.com/Sobolev5/channel-box/tree/master/example
 ```
 
 ## NGINX websocket setup
-```no-highlight
+```sh
 http://nginx.org/en/docs/http/websocket.html
 ```
 
 ## Check uvicorn installation
-```no-highlight
+```sh
 pip install uvicorn[standard]
 ```
+## Setup channel 
+```python
+class Channel(ChannelBoxEndpoint):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.expires = 1600
+        self.encoding = "json"
 
-## channel_box methods
+    async def on_connect(self, websocket):
+        channel_name = websocket.query_params.get("channel_name", "MySimpleChat")  # channel name */ws?channel_name=MySimpleChat
+        await self.channel_get_or_create(channel_name, websocket) 
+        await websocket.accept()
 
-Send message to any group from any part of your code:
-```no-highlight
-await channel_box.channel_send("MySimpleChat", {"username": "another part code", "message": "hello from SendFromAnotherPartCode"}, show=True, history=True)
+    async def on_receive(self, websocket, data):
+        message = data["message"]
+        username = data["username"]     
+        if message.strip():
+            payload = {
+                "username": username,
+                "message": message,
+            }
+            await self.channel_send(payload, history=True)
 ```
 
-Show groups and channels:
-```no-highlight
-await channel_box.channels_show()  
+## Send messages 
+Send message to any channel from any part of your code:
+```python
+from channel_box import channel_box
+await channel_box.channel_send(channel_name="MySimpleChat", payload={"username": "Message HTTPEndpoint", "message": "hello from Message"}, history=True) 
 ```
 
-Flush all groups and channels:
-```no-highlight
-await channel_box.channels_flush()
+Get & flush channels:
+```python
+await channel_box.channels() 
+await channel_box.channels_flush()  
 ```
 
-## P.S.
-Try my free service for developers [Workhours.space](https://workhours.space/). 
-It's time tracker with simple interface, powerful functionality such as automatic payroll calculation, 
-telegram bot timer, easy web2 and web3 auth and more. Enjoy. 
+Get & flush history:
+```python
+await channel_box.history() 
+await channel_box.history_flush()
+```
 
+## TODO
+```python
+typing
+__doc__ strings
+```
+
+## Try my free time tracker
+My free time tracker for developers [Workhours.space](https://workhours.space/). 
 
 
 
