@@ -1,5 +1,5 @@
 # channel-box
-`channel-box` it is a simple tool for Starlette framework that allows you send messages to named websocket channels.
+`channel-box` it is a simple tool for Starlette & FastAPI framework that allows you send messages to named websocket channels from any part of your code.
 
 Example of use:
 - group chats
