@@ -58,7 +58,6 @@ class ChannelBox:
                 pass
         await self._clean_expired()
 
-
     async def _clean_expired(self):  
         for channel_name in list(self._CHANNELS):        
             for channel in self._CHANNELS.get(channel_name, {}):
@@ -78,14 +77,12 @@ channel_box = ChannelBox()
 
 class Channel:
 
-
     def __init__(self, websocket, expires, encoding):
         self.channel_uuid = shortuuid.uuid()
         self.websocket = websocket
         self.expires = expires
         self.encoding = encoding
         self.created = time.time()
-
 
     async def send(self, payload:dict={}):
         websocket = self.websocket
@@ -111,10 +108,8 @@ class Channel:
                 pass
         self.created = time.time()
 
-
     async def _is_expired(self):
         return self.expires + int(self.created) < time.time()
-
 
     def __repr__(self):
         return f"channel uuid={self.channel_uuid} expires={self.expires} encoding={self.encoding}"
@@ -152,7 +147,6 @@ class ChannelBoxEndpoint(WebSocketEndpoint):
         assert validated_name, "Channel names must be valid python identifier only alphanumerics and underscores are accepted"
         await self.channel_box._channel_add(channel_name, self.channel)
         self.channel_name = channel_name
-
 
     async def _validate_name(self, name):       
         if name.isidentifier():
