@@ -6,11 +6,9 @@ from starlette.endpoints import WebSocketEndpoint
 
 
 class ChannelBox:
-
     def __init__(self, HISTORY_SIZE:int=1_048_576):
-        # TODO HISTORY_SIZE ENV
         self.created = time.time()
-        self.HISTORY_SIZE = HISTORY_SIZE
+        self.HISTORY_SIZE = HISTORY_SIZE # TODO HISTORY_SIZE ENV
 
     _CHANNELS = {}
     _CHANNELS_HISTORY = {}
@@ -26,27 +24,21 @@ class ChannelBox:
         for channel in self._CHANNELS.get(channel_name, {}):
             await channel.send(payload)
 
-
     async def channels(self):
         return self._CHANNELS
-
 
     async def channels_flush(self) -> None:
         self._CHANNELS = {}
 
-
     async def history(self, channel_name:str="") -> list: 
         return self._CHANNELS_HISTORY.get(channel_name, []) if channel_name else self._CHANNELS_HISTORY
-        
      
     async def history_flush(self) -> None:
         self._CHANNELS_HISTORY = {}
 
-
     async def _channel_add(self, channel_name, channel):
         self._CHANNELS.setdefault(channel_name, {})
         self._CHANNELS[channel_name][channel] = True
-
 
     async def _channel_remove(self, channel_name, channel):
         if channel in self._CHANNELS.get(channel_name, {}):
@@ -76,7 +68,6 @@ channel_box = ChannelBox()
 
 
 class Channel:
-
     def __init__(self, websocket, expires, encoding):
         self.channel_uuid = shortuuid.uuid()
         self.websocket = websocket
@@ -116,9 +107,7 @@ class Channel:
 
 
 class ChannelBoxEndpoint(WebSocketEndpoint):
-
     def __init__(self, *args, **kwargs):
-
         super().__init__(*args, **kwargs)
         self.expires = 60 * 60 * 24
         self.encoding = "json"
@@ -126,20 +115,16 @@ class ChannelBoxEndpoint(WebSocketEndpoint):
         self.channel = None
         self.channel_box = channel_box
 
-
     async def on_connect(self, websocket, **kwargs):
         await super().on_connect(websocket, **kwargs)
         self.channel = Channel(websocket=websocket, expires=self.expires, encoding=self.encoding)
-
 
     async def on_disconnect(self, websocket, close_code):
         await super().on_disconnect(websocket, close_code)
         await self.channel_box._channel_remove(self.channel_name, self.channel)
 
-
     async def channel_send(self, payload:dict={}, show=False, history=False):
         await self.channel_box.channel_send(self.channel_name, payload, show=show, history=history)
-
 
     async def channel_get_or_create(self, channel_name, websocket):
         self.channel = Channel(websocket=websocket, expires=self.expires, encoding=self.encoding)
