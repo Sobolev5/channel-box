@@ -17,11 +17,21 @@ To install run:
 pip install channel-box
 ```
 
-## [important!] see full working example `example/app.py`
+## Full working example [1] `example/app.py`
 ```sh
 https://channel-box.andrey-sobolev.ru/
 https://github.com/Sobolev5/channel-box/tree/master/example
 ```
+
+## Full working example [2]
+```sh
+http://89.108.77.63:1025/
+https://github.com/Sobolev5/LordaeronChat  
+
+```
+  
+___
+   
 
 ## NGINX websocket setup
 ```sh
@@ -81,8 +91,6 @@ typing
 __doc__ strings
 ```
 
-## Try my free time tracker
-My free time tracker for developers [Workhours.space](https://workhours.space/). 
 
 
 
