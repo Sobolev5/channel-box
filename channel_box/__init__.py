@@ -1,2 +1,3 @@
-from .channel_box import ChannelBoxEndpoint
-from .channel_box import channel_box
+from .channel_box import (
+    ChannelBox, ChannelBoxEndpoint, channel_box
+)

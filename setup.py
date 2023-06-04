@@ -3,7 +3,7 @@ import sys
 import setuptools
 
 __author__ = "Sobolev Andrey <email.asobolev@gmail.com>"
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 
 with open("README.md", "r") as fh:
@@ -11,13 +11,13 @@ with open("README.md", "r") as fh:
 
 
 setuptools.setup(
-    name="channel-box",
+    name="ChannelBox",
     version=__version__,
     install_requires=["starlette>=0.20.4", "shortuuid>=1.0.9", "uvicorn[standart]>=0.18.3"],
     author="Sobolev Andrey",
     url="https://github.com/Sobolev5/channel-box",        
     author_email="email.asobolev@gmail.com",
-    description="channel-box it is a simple tool for Starlette framework that allows you to make named webscoket channels.",
+    description="ChannelBox it is a simple tool for Starlette framework that allows you to make named webscoket channels.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(exclude=[".git", ".gitignore"]),

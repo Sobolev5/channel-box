@@ -1,9 +1,5 @@
-import sys
-from pathlib import Path
-sys.path.append(str(Path('.').absolute().parent)) 
-
 import pytest
-from channel_box.channel_box import ChannelBox
+from channel_box import ChannelBox
 
 @pytest.mark.asyncio
 async def test():  

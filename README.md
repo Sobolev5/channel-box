@@ -42,6 +42,7 @@ http://nginx.org/en/docs/http/websocket.html
 ```sh
 pip install uvicorn[standard]
 ```
+
 ## Setup channel 
 ```python
 class Channel(ChannelBoxEndpoint):
@@ -85,11 +86,6 @@ await channel_box.history()
 await channel_box.history_flush()
 ```
 
-## TODO
-```python
-typing
-__doc__ strings
-```
 
 
 

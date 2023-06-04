@@ -7,6 +7,7 @@ from starlette.endpoints import HTTPEndpoint
 from starlette.responses import HTMLResponse
 from settings import HOST
 
+
 class Channel(ChannelBoxEndpoint):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -16,7 +17,7 @@ class Channel(ChannelBoxEndpoint):
     async def on_connect(self, websocket):
         sprint('user_connected', c="green", p=True)
         channel_name = websocket.query_params.get("channel_name", "MySimpleChat")  # channel name */ws?channel_name=MySimpleChat
-        await self.channel_get_or_create(channel_name, websocket) 
+        status = await self.get_or_create_named_channel(channel_name) 
         await websocket.accept()
 
     async def on_receive(self, websocket, data):
