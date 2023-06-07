@@ -1,5 +1,5 @@
 # channel-box
-`channel-box` it is a simple tool for Starlette & FastAPI framework that allows you send messages to named websocket channels from any part of your code.
+`channel-box` it is a package for Starlette & FastAPI framework that allows you send messages to named websocket channels from any part of your code.
 
 Example of use:
 - group chats
@@ -68,7 +68,7 @@ class WsChatEndpoint(WebSocketEndpoint):
             }
             group_name = websocket.query_params.get("group_name")
             if group_name:
-                await ChannelBox.group_send(group_name, payload)
+                await ChannelBox.group_send(group_name, payload) # send to all channels
 ```
 
 ## Send messages 
