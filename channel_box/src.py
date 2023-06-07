@@ -5,6 +5,7 @@ import os
 import time
 import uuid
 import logging
+from typing import Any
 from enum import Enum
 from starlette.websockets import WebSocket
 
@@ -29,8 +30,7 @@ class Channel:
         self.uuid = uuid.uuid4()
         self.created = time.time()
 
-    async def send(self, payload: dict={}) -> None:
-        assert isinstance(payload, dict)
+    async def send(self, payload: Any) -> None:
         if self.encoding == "json":
             try:
                 await self.websocket.send_json(payload)
