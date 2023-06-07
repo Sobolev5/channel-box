@@ -49,12 +49,12 @@ from starlette.endpoints import WebSocketEndpoint
 from channel_box import Channel, ChannelBox
 
 class WsChatEndpoint(WebSocketEndpoint):
-    
+
     async def on_connect(self, websocket):
         group_name = websocket.query_params.get("group_name")  # group name */ws?group_name=MyChat
         if group_name:
             channel = Channel(websocket, expires=60*60, encoding="json") # define user channel
-            channel = await ChannelBox.channel_add(group_name, channel) # add channel to named group
+            channel = await ChannelBox.channel_add(group_name, channel) # add user channel to named group
         await websocket.accept()
 
     async def on_receive(self, websocket, data):
@@ -69,7 +69,7 @@ class WsChatEndpoint(WebSocketEndpoint):
             }
             group_name = websocket.query_params.get("group_name")
             if group_name:
-                await ChannelBox.group_send(group_name, payload) # send to all channels
+                await ChannelBox.group_send(group_name, payload) # send to all users channels
 ```
 
 ## Send messages 

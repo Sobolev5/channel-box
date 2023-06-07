@@ -161,12 +161,12 @@ class ChannelBox:
                     try:
                         del cls._GROUPS[group_name][channel]
                     except:
-                        logging.debug("no such channel")
+                        logging.debug("No such channel")
             if not any(cls._GROUPS.get(group_name, {})):
                 try:
                     del cls._GROUPS[group_name]
                 except Exception as e:
-                    logging.debug("no such group")
+                    logging.debug("No such group")
 
 
 
