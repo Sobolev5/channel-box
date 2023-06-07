@@ -12,7 +12,7 @@ from starlette.endpoints import WebSocketEndpoint
 
 class Channel:
     """ 
-    Channel class.
+    Channel class - active user channel (adapter to starlette.websockets.WebSocket).
 
     websocket: WebSocket # Starlette websocket instance (see starlette documentation)
     expires: int -> Channel ttl in seconds
@@ -64,7 +64,7 @@ class Channel:
 
 class ChannelBox:
     """ 
-    ChannelBox class.
+    ChannelBox - collection of groups with user channels.
     
     _GROUPS: dict, dict with groups of active channels ~ key: group_name, val: list of channels
     _GROUPS_HISTORY: dict, history messages
