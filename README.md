@@ -95,5 +95,7 @@ await ChannelBox.history()
 await ChannelBox.history_flush()
 ```
 
-# TODO 
-> Tests
+## Tests
+```sh
+tox
+```

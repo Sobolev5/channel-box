@@ -4,8 +4,8 @@ from starlette.routing import WebSocketRoute
 from .views import WsChatEndpoint
 from .views import Chat
 from .views import Message
-from .views import Channels
-from .views import ChannelsFlush
+from .views import Groups
+from .views import GroupsFlush
 from .views import History
 from .views import HistoryFlush
 
@@ -13,8 +13,8 @@ routes = [
     WebSocketRoute("/chat_ws", WsChatEndpoint),
     Route("/", endpoint=Chat),
     Route("/message", endpoint=Message),
-    Route("/channels", endpoint=Channels),
-    Route("/channels-flush", endpoint=ChannelsFlush),
+    Route("/groups", endpoint=Groups),
+    Route("/groups-flush", endpoint=GroupsFlush),
     Route("/history", endpoint=History),
     Route("/history-flush", endpoint=HistoryFlush),
 ]

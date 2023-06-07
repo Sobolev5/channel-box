@@ -7,7 +7,6 @@ import uuid
 import logging
 from enum import Enum
 from starlette.websockets import WebSocket
-from starlette.endpoints import WebSocketEndpoint
 
 
 class Channel:
@@ -32,25 +31,24 @@ class Channel:
 
     async def send(self, payload: dict={}) -> None:
         assert isinstance(payload, dict)
-        websocket = self.websocket
         if self.encoding == "json":
             try:
-                await websocket.send_json(payload)
+                await self.websocket.send_json(payload)
             except RuntimeError as error:
                 logging.debug(error)  
         elif self.encoding == "text":
             try:
-                await websocket.send_text(payload)
+                await self.websocket.send_text(payload)
             except RuntimeError as error:
                 logging.debug(error)  
         elif self.encoding == "bytes":
             try:
-                await websocket.send_bytes(payload)
+                await self.websocket.send_bytes(payload)
             except RuntimeError as error:
                 logging.debug(error)  
         else:
             try:
-                await websocket.send(payload)
+                await self.websocket.send(payload)
             except RuntimeError as error:
                 logging.debug(error)  
         self.created = time.time() # renew created time for active connecitons
@@ -75,65 +73,84 @@ class ChannelBox:
     _GROUPS_HISTORY: dict = {}
     _HISTORY_SIZE: int = os.getenv("CHANNEL_BOX_HISTORY_SIZE", 1_048_576)
  
+    @classmethod  
+    async def channel_add(cls, group_name: str, channel: Channel) -> Enum:
+
+        class Status(Enum):
+            ADDED = 1
+            EXIST = 2 
+
+        if group_name not in cls._GROUPS:
+            cls._GROUPS[group_name] = {}
+            status = Status.ADDED
+        else:
+            status = Status.EXIST  
+
+        cls._GROUPS[group_name][channel] = 1
+        return status
+    
+    @classmethod  
+    async def channel_remove(cls, group_name: str, channel: Channel) -> Enum:
+
+        class Status(Enum):
+            CHANNEL_REMOVED = 1
+            GROUP_REMOVED = 2
+            DOES_NOT_EXIST = 3 
+
+        if channel in cls._GROUPS.get(group_name, {}):
+            try:
+                del cls._GROUPS[group_name][channel]
+                status = Status.CHANNEL_REMOVED 
+            except:
+                status = Status.DOES_NOT_EXIST    
+
+        if not any(cls._GROUPS.get(group_name, {})):
+            try:
+                del cls._GROUPS[group_name]
+                status = Status.GROUP_REMOVED 
+            except:
+                status = Status.DOES_NOT_EXIST 
+
+        await cls._clean_expired()
+        return status
+
     @classmethod
-    async def group_send(cls, group_name: str="", payload: dict={}, history: bool=False, **kwargs) -> None:
+    async def groups(cls) -> dict:
+        return cls._GROUPS
+
+    @classmethod
+    async def groups_flush(cls) -> True:
+        cls._GROUPS = {}
+        return True
+    
+    @classmethod
+    async def group_send(cls, group_name: str="", payload: dict={}, history: bool=False, **kwargs) -> Enum:
+        
+        class Status(Enum):
+            CHANNEL_SEND = 1
+            NO_SUCH_GROUP = 2
+
         if history:
             cls._GROUPS_HISTORY.setdefault(group_name, [])
             cls._GROUPS_HISTORY[group_name].append({"payload": payload, "uuid": uuid.uuid4(), "datetime": datetime.datetime.now()})
             if sys.getsizeof(cls._GROUPS_HISTORY[group_name]) > cls._HISTORY_SIZE:  
                 cls._GROUPS_HISTORY[group_name] = []
 
+        status = Status.NO_SUCH_GROUP 
         for channel in cls._GROUPS.get(group_name, {}):
             await channel.send(payload)
+            status = Status.CHANNEL_SEND 
 
-    @classmethod
-    async def channels(cls) -> dict:
-        return cls._GROUPS
-
-    @classmethod
-    async def channels_flush(cls) -> None:
-        cls._GROUPS = {}
+        return status
 
     @classmethod
     async def history(cls, group_name: str="") -> dict: 
         return cls._GROUPS_HISTORY.get(group_name, {}) if group_name else cls._GROUPS_HISTORY
     
-    @classmethod
-    async def history_count(cls, group_name: str) -> int: 
-        assert group_name and isinstance(group_name, str)
-        return len(cls._GROUPS_HISTORY.get(group_name, [])) 
-
     @classmethod     
-    async def history_flush(cls) -> None:
+    async def history_flush(cls) -> True:
         cls._GROUPS_HISTORY = {}
-
-    @classmethod  
-    async def channel_add(cls, group_name: str, channel: Channel) -> Enum:
-
-        class GroupStatus(Enum):
-            ADDED = 1
-            EXIST = 2 
-
-        status = GroupStatus.EXIST
-        if group_name not in cls._GROUPS:
-            cls._GROUPS[group_name] = {}
-            status = GroupStatus.ADDED      
-        cls._GROUPS[group_name][channel] = 1
-        return status
-        
-    @classmethod  
-    async def channel_remove(cls, group_name: str, channel: Channel) -> ChannelBox._clean_expired:
-        if channel in cls._GROUPS.get(group_name, {}):
-            try:
-                del cls._GROUPS[group_name][channel]
-            except:
-                logging.debug("no such channel")            
-        if not any(cls._GROUPS.get(group_name, {})):
-            try:
-                del cls._GROUPS[group_name]
-            except:
-                logging.debug("no such group")
-        await cls._clean_expired()
+        return True
 
     @classmethod  
     async def _clean_expired(cls) -> None:  
@@ -141,7 +158,10 @@ class ChannelBox:
             for channel in cls._GROUPS.get(group_name, {}):
                 _is_expired = await channel._is_expired()
                 if _is_expired:
-                    del cls._GROUPS[group_name][channel]
+                    try:
+                        del cls._GROUPS[group_name][channel]
+                    except:
+                        logging.debug("no such channel")
             if not any(cls._GROUPS.get(group_name, {})):
                 try:
                     del cls._GROUPS[group_name]

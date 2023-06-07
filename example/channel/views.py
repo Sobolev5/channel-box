@@ -17,7 +17,7 @@ class WsChatEndpoint(WebSocketEndpoint):
         group_name = websocket.query_params.get("group_name")  # group name */ws?group_name=MyChat
         if group_name:
             channel = Channel(websocket, expires=60*60, encoding="json") # define user channel
-            channel = await ChannelBox.channel_add(group_name, channel) # add channel to named group
+            status = await ChannelBox.channel_add(group_name, channel) # add channel to named group
         await websocket.accept()
 
     async def on_receive(self, websocket, data):
@@ -39,20 +39,19 @@ html_text = """
 <!DOCTYPE html>
 <html>
     <head>
-        <title>MyChat channel (open in different browsers)</title>
+        <title>MyChat group (open in different browsers)</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     </head>
     <body>
-        <div class="container mt-4">
-            
+        <div class="container mt-4">        
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mt-2">MyChat channel (open in different browsers)</h5>
-                    <h5>channel-box == 0.5.0 (beta)</h5>
+                    <h5 class="mt-2">MyChat group (open in different browsers)</h5>
+                    <h5>channel-box == 0.5.0</h5>
                     <ul>
                         <li><a href="http://{{ SOCKET }}/message" target="_blank">Send message from another view</a></li>
-                        <li><a href="http://{{ SOCKET }}/channels" target="_blank">Show channels</a></li>
-                        <li><a href="http://{{ SOCKET }}/channels-flush" target="_blank">Flush channels</a></li>
+                        <li><a href="http://{{ SOCKET }}/groups" target="_blank">Show groups</a></li>
+                        <li><a href="http://{{ SOCKET }}/groups-flush" target="_blank">Flush groups</a></li>
                         <li><a href="http://{{ SOCKET }}/history" target="_blank">Show history</a></li>
                         <li><a href="http://{{ SOCKET }}/history-flush" target="_blank">Flush history</a></li>
                     </ul>
@@ -119,16 +118,16 @@ class Message(HTTPEndpoint):
         await ChannelBox.group_send(group_name="MyChat", payload={"username": "Any part of your code", "message": "Hello World"}, history=True)   
         return JSONResponse({"message": "success"})
 
-class Channels(HTTPEndpoint):
+class Groups(HTTPEndpoint):
     async def get(self, request):  
-        sprint('Channels.get', c="green")                 
-        channels = await ChannelBox.channels()
-        return HTMLResponse(f"{channels}")
+        sprint('Groups.get', c="green")                 
+        groups = await ChannelBox.groups()
+        return HTMLResponse(f"{groups}")
 
-class ChannelsFlush(HTTPEndpoint):
+class GroupsFlush(HTTPEndpoint):
     async def get(self, request): 
-        sprint('ChannelsFlush.get', c="green")    
-        await ChannelBox.channels_flush()            
+        sprint('GroupsFlush.get', c="green")    
+        await ChannelBox.groups_flush()            
         return JSONResponse({"flush": "success"})   
 
 class History(HTTPEndpoint):
