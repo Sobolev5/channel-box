@@ -1,41 +1,45 @@
+import json
 from simple_print import sprint
 from jinja2 import Template
-from channel_box import channel_box
-from channel_box import ChannelBoxEndpoint
+from channel_box import Channel
+from channel_box import ChannelBox
+from starlette.endpoints import WebSocketEndpoint
 from starlette.responses import JSONResponse
 from starlette.endpoints import HTTPEndpoint
 from starlette.responses import HTMLResponse
-from settings import HOST
+from settings import SOCKET
 
 
-class Channel(ChannelBoxEndpoint):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.expires = 16000
-        self.encoding = "json"
+class WsChatEndpoint(WebSocketEndpoint):
 
     async def on_connect(self, websocket):
-        sprint('user_connected', c="green", p=True)
-        channel_name = websocket.query_params.get("channel_name", "MySimpleChat")  # channel name */ws?channel_name=MySimpleChat
-        status = await self.get_or_create_named_channel(channel_name) 
+        sprint('Channel.on_connect', c="green")
+        group_name = websocket.query_params.get("group_name")  # group name */ws?group_name=MyChat
+        if group_name:
+            channel = Channel(websocket, expires=60*60, encoding="json") # define user channel
+            channel = await ChannelBox.channel_add(group_name, channel) # add channel to named group
         await websocket.accept()
 
     async def on_receive(self, websocket, data):
+        sprint(f'Channel.on_receive data [{data}]', c="green")
+        data = json.loads(data)
         message = data["message"]
         username = data["username"]     
+
         if message.strip():
             payload = {
                 "username": username,
                 "message": message,
             }
-            await self.channel_send(payload, history=True)
-
+            group_name = websocket.query_params.get("group_name")
+            if group_name:
+                await ChannelBox.group_send(group_name, payload, history=True)
 
 html_text = """
 <!DOCTYPE html>
 <html>
     <head>
-        <title>MySimpleChat channel (open in different browsers)</title>
+        <title>MyChat channel (open in different browsers)</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     </head>
     <body>
@@ -43,14 +47,14 @@ html_text = """
             
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mt-2">MySimpleChat channel (open in different browsers)</h5>
-                    <h5>channel-box == 0.4.0</h5>
+                    <h5 class="mt-2">MyChat channel (open in different browsers)</h5>
+                    <h5>channel-box == 0.5.0 (beta)</h5>
                     <ul>
-                        <li><a href="http://{{ host }}/message" target="_blank">Send message from another view</a></li>
-                        <li><a href="http://{{ host }}/channels" target="_blank">Show channels</a></li>
-                        <li><a href="http://{{ host }}/channels-flush" target="_blank">Flush channels</a></li>
-                        <li><a href="http://{{ host }}/history" target="_blank">Show history</a></li>
-                        <li><a href="http://{{ host }}/history-flush" target="_blank">Flush history</a></li>
+                        <li><a href="http://{{ SOCKET }}/message" target="_blank">Send message from another view</a></li>
+                        <li><a href="http://{{ SOCKET }}/channels" target="_blank">Show channels</a></li>
+                        <li><a href="http://{{ SOCKET }}/channels-flush" target="_blank">Flush channels</a></li>
+                        <li><a href="http://{{ SOCKET }}/history" target="_blank">Show history</a></li>
+                        <li><a href="http://{{ SOCKET }}/history-flush" target="_blank">Flush history</a></li>
                     </ul>
                 </div>
                 <div class"card-body">   
@@ -74,9 +78,9 @@ html_text = """
                 </div>
             </div>
             <script>
-                var ws = new WebSocket("wss://{{ host }}/chat_ws?channel_name=MySimpleChat"); 
+                var ws = new WebSocket("ws://{{ SOCKET }}/chat_ws?group_name=MyChat"); 
                 ws.onopen = function(event) {
-                    console.log('Connected to websocket. Channel MySimpleChat is open now.')
+                    console.log('Connected to websocket. Channel MyChat is open now.')
                 };
                 ws.onmessage = function(event) {
                     console.log('Message received %s', event.data)
@@ -104,33 +108,39 @@ html_text = """
 """
 
 class Chat(HTTPEndpoint):
-    async def get(self, request):   
+    async def get(self, request):  
+        sprint('Chat.get', c="green")    
         template = Template(html_text)      
-        return HTMLResponse(template.render(host=HOST))
+        return HTMLResponse(template.render(SOCKET=SOCKET))
 
 class Message(HTTPEndpoint):
-    async def get(self, request):     
-        await channel_box.channel_send(channel_name="MySimpleChat", payload={"username": "Message HTTPEndpoint", "message": "hello from Message"}, history=True)   
+    async def get(self, request):   
+        sprint('Message.get', c="green")          
+        await ChannelBox.group_send(group_name="MyChat", payload={"username": "Any part of your code", "message": "Hello World"}, history=True)   
         return JSONResponse({"message": "success"})
 
 class Channels(HTTPEndpoint):
-    async def get(self, request):                 
-        channels = await channel_box.channels()
+    async def get(self, request):  
+        sprint('Channels.get', c="green")                 
+        channels = await ChannelBox.channels()
         return HTMLResponse(f"{channels}")
 
 class ChannelsFlush(HTTPEndpoint):
-    async def get(self, request):   
-        await channel_box.channels_flush()            
+    async def get(self, request): 
+        sprint('ChannelsFlush.get', c="green")    
+        await ChannelBox.channels_flush()            
         return JSONResponse({"flush": "success"})   
 
 class History(HTTPEndpoint):
-    async def get(self, request):      
-        history = await channel_box.history()
+    async def get(self, request):   
+        sprint('History.get', c="green")   
+        history = await ChannelBox.history()
         return HTMLResponse(f"{history}")
 
 class HistoryFlush(HTTPEndpoint):
     async def get(self, request):  
-        await channel_box.history_flush()             
+        sprint('HistoryFlush.get', c="green")
+        await ChannelBox.history_flush()             
         return JSONResponse({"flush": "success"})
 
 

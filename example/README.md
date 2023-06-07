@@ -1,14 +1,14 @@
-# channel-box example
+# ChannelBox example
 
 Install required dependencies and run server:
 ``` sh
 pip install -r requirements.txt
-uvicorn app:app --reload --host 0.0.0.0 --port 8588  
+uvicorn app:app --reload --host 0.0.0.0 --port 8888  
 ```
 
 Open example:
 ``` sh
-127.0.0.1:8588 
+127.0.0.1:8888 
 ```
 
 Websocket behind the nginx:
@@ -17,7 +17,7 @@ server {
     server_name your-host.com;
 
     location / {
-        proxy_pass http://127.0.0.1:8588/;
+        proxy_pass http://127.0.0.1:8888/;
 
         proxy_redirect off;
         proxy_set_header Host $host;
@@ -33,7 +33,3 @@ server {
 
 ```
 
-Test:
-``` sh
-tox
-```

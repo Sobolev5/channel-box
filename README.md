@@ -45,49 +45,55 @@ pip install uvicorn[standard]
 
 ## Setup channel 
 ```python
-class Channel(ChannelBoxEndpoint):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.expires = 1600
-        self.encoding = "json"
+from starlette.endpoints import WebSocketEndpoint
+from channel_box import Channel, ChannelBox
 
+class WsChatEndpoint(WebSocketEndpoint):
     async def on_connect(self, websocket):
-        channel_name = websocket.query_params.get("channel_name", "MySimpleChat")  # channel name */ws?channel_name=MySimpleChat
-        await self.channel_get_or_create(channel_name, websocket) 
+        group_name = websocket.query_params.get("group_name")  # group name */ws?group_name=MyChat
+        if group_name:
+            channel = Channel(websocket, expires=60*60, encoding="json") # define user channel
+            channel = await ChannelBox.channel_add(group_name, channel) # add channel to named group
         await websocket.accept()
 
     async def on_receive(self, websocket, data):
+        data = json.loads(data)
         message = data["message"]
         username = data["username"]     
+
         if message.strip():
             payload = {
                 "username": username,
                 "message": message,
             }
-            await self.channel_send(payload, history=True)
+            group_name = websocket.query_params.get("group_name")
+            if group_name:
+                await ChannelBox.group_send(group_name, payload)
 ```
 
 ## Send messages 
 Send message to any channel from any part of your code:
 ```python
-from channel_box import channel_box
-await channel_box.channel_send(channel_name="MySimpleChat", payload={"username": "Message HTTPEndpoint", "message": "hello from Message"}, history=True) 
+from channel_box import ChannelBox
+
+await ChannelBox.channel_send(channel_name="MyChat", payload={"username": "Message from any part of your code", "message": "hello world"}, history=True) 
 ```
 
 Get & flush channels:
 ```python
-await channel_box.channels() 
-await channel_box.channels_flush()  
+from channel_box import ChannelBox
+
+await ChannelBox.channels() 
+await ChannelBox.channels_flush()  
 ```
 
 Get & flush history:
 ```python
-await channel_box.history() 
-await channel_box.history_flush()
+from channel_box import ChannelBox
+
+await ChannelBox.history() 
+await ChannelBox.history_flush()
 ```
 
-
-
-
-
-
+# TODO 
+> Tests
