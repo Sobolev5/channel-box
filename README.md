@@ -49,6 +49,7 @@ from starlette.endpoints import WebSocketEndpoint
 from channel_box import Channel, ChannelBox
 
 class WsChatEndpoint(WebSocketEndpoint):
+    
     async def on_connect(self, websocket):
         group_name = websocket.query_params.get("group_name")  # group name */ws?group_name=MyChat
         if group_name:
