@@ -13,11 +13,11 @@ async def test_channel_box():
 
     # add channel 
     status = await ChannelBox.channel_add(group_name, channel) 
-    assert status.value == 1
+    assert status.name == "ADDED"
 
     # remove channel
     status = await ChannelBox.channel_remove(group_name, channel) 
-    assert status.value == 2
+    assert status.name == "GROUP_REMOVED"
 
     # groups
     await ChannelBox.channel_add(group_name, channel) 
@@ -31,7 +31,7 @@ async def test_channel_box():
     # group send
     await ChannelBox.channel_add(group_name, channel) 
     status = await ChannelBox.group_send(group_name, {"hello": "world"}, history=True)
-    assert status.value == 1
+    assert status.name == "GROUP_SEND"
 
     # history
     history = await ChannelBox.history()
