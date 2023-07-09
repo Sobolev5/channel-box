@@ -10,6 +10,22 @@ from enum import Enum
 from starlette.websockets import WebSocket
 
 
+class ChannelAddStatus(Enum):
+    ADDED = 1
+    EXIST = 2 
+
+
+class ChannelRemoveStatus(Enum):
+    CHANNEL_REMOVED = 1
+    GROUP_REMOVED = 2
+    DOES_NOT_EXIST = 3 
+
+
+class GroupSendStatus(Enum):
+    GROUP_SEND = 1
+    NO_SUCH_GROUP = 2
+
+
 class Channel:
     """ 
     Channel class - active user channel (adapter to starlette.websockets.WebSocket).
@@ -76,15 +92,11 @@ class ChannelBox:
     @classmethod  
     async def channel_add(cls, group_name: str, channel: Channel) -> Enum:
 
-        class Status(Enum):
-            ADDED = 1
-            EXIST = 2 
-
         if group_name not in cls._GROUPS:
             cls._GROUPS[group_name] = {}
-            status = Status.ADDED
+            status = ChannelAddStatus.ADDED
         else:
-            status = Status.EXIST  
+            status = ChannelAddStatus.EXIST  
 
         cls._GROUPS[group_name][channel] = 1
         return status
@@ -92,24 +104,19 @@ class ChannelBox:
     @classmethod  
     async def channel_remove(cls, group_name: str, channel: Channel) -> Enum:
 
-        class Status(Enum):
-            CHANNEL_REMOVED = 1
-            GROUP_REMOVED = 2
-            DOES_NOT_EXIST = 3 
-
         if channel in cls._GROUPS.get(group_name, {}):
             try:
                 del cls._GROUPS[group_name][channel]
-                status = Status.CHANNEL_REMOVED 
+                status = ChannelRemoveStatus.CHANNEL_REMOVED 
             except:
-                status = Status.DOES_NOT_EXIST    
+                status = ChannelRemoveStatus.DOES_NOT_EXIST    
 
         if not any(cls._GROUPS.get(group_name, {})):
             try:
                 del cls._GROUPS[group_name]
-                status = Status.GROUP_REMOVED 
+                status = ChannelRemoveStatus.GROUP_REMOVED 
             except:
-                status = Status.DOES_NOT_EXIST 
+                status = ChannelRemoveStatus.DOES_NOT_EXIST 
 
         await cls._clean_expired()
         return status
@@ -126,20 +133,16 @@ class ChannelBox:
     @classmethod
     async def group_send(cls, group_name: str="", payload: dict={}, history: bool=False, **kwargs) -> Enum:
         
-        class Status(Enum):
-            CHANNEL_SEND = 1
-            NO_SUCH_GROUP = 2
-
         if history:
             cls._GROUPS_HISTORY.setdefault(group_name, [])
             cls._GROUPS_HISTORY[group_name].append({"payload": payload, "uuid": uuid.uuid4(), "datetime": datetime.datetime.now()})
             if sys.getsizeof(cls._GROUPS_HISTORY[group_name]) > cls._HISTORY_SIZE:  
                 cls._GROUPS_HISTORY[group_name] = []
 
-        status = Status.NO_SUCH_GROUP 
+        status = GroupSendStatus.NO_SUCH_GROUP 
         for channel in cls._GROUPS.get(group_name, {}):
             await channel.send(payload)
-            status = Status.CHANNEL_SEND 
+            status = GroupSendStatus.GROUP_SEND 
 
         return status
 
