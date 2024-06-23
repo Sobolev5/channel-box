@@ -68,8 +68,8 @@ class Channel:
 
         self.created = time.time()  # renew created time for active connecitons
 
-    async def _is_expired(self) -> None:
-        return self.expires + int(self.created) < time.time()
+    async def _is_expired(self) -> bool:
+        return (self.expires + int(self.created)) < time.time()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__} {self.uuid=} {self.payload_type=} {self.expires=}"
@@ -78,7 +78,7 @@ class Channel:
 class ChannelBox:
     CHANNEL_GROUPS: dict = {}  # groups of channels ~ key: group_name, val: dict of channels
     CHANNEL_GROUPS_HISTORY: dict = {}  # history messages
-    HISTORY_SIZE: int = os.getenv("CHANNEL_BOX_HISTORY_SIZE", 1_048_576)
+    HISTORY_SIZE: int = int(os.getenv("CHANNEL_BOX_HISTORY_SIZE", 1_048_576))
 
     @classmethod
     async def add_channel_to_group(
