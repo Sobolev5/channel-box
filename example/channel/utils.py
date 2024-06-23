@@ -2,17 +2,17 @@ html_template = """
 <!DOCTYPE html>
 <html>
     <head>
-        <title>MyChat group (open in different browsers)</title>
+        <title>Open this chat in different browsers</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     </head>
     <body>
         <div class="container mt-4">        
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mt-2">MyChat group (open in different browsers)</h5>
-                    <h5>channel-box == 1.0.0</h5>
+                    <h5 class="mt-2">Open this chat in different browsers</h5>
+                    <h6>channel-box == 1.0.0</h6>
                     <ul>
-                        <li><a href="http://{{ SOCKET }}/send-message" target="_blank">Send message from another view</a></li>
+                        <li><a href="http://{{ SOCKET }}/send-message-from-any-part-of-your-code" target="_blank">Send message from any part of your code</a></li>
                         <li><a href="http://{{ SOCKET }}/show-groups" target="_blank">Show groups</a></li>
                         <li><a href="http://{{ SOCKET }}/flush-groups" target="_blank">Flush groups</a></li>
                         <li><a href="http://{{ SOCKET }}/show-history" target="_blank">Show history</a></li>

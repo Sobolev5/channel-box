@@ -66,7 +66,7 @@ class Chat(HTTPEndpoint):
         return HTMLResponse(template.render(SOCKET="127.0.0.1:8888"))
 
 
-class SendMessage(HTTPEndpoint):
+class SendMessageFromAnyPartOfYourCode(HTTPEndpoint):
     async def get(self, request):
         sprint(
             f"{self.__class__.__name__}",
@@ -75,7 +75,7 @@ class SendMessage(HTTPEndpoint):
         await ChannelBox.group_send(
             group_name="MyChat",
             payload={"username": "Any part of your code", "message": "Hello World"},
-            history=True,
+            save_history=True,
         )
         return JSONResponse({"message": "success"})
 
