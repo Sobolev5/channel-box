@@ -65,13 +65,14 @@ class Channel:
                     await self.websocket.send(payload)
                 except RuntimeError as error:
                     logging.debug(error)
+
         self.created = time.time()  # renew created time for active connecitons
 
     async def _is_expired(self) -> None:
         return self.expires + int(self.created) < time.time()
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__} {self.uuid=} {self.payload_type=} {self.created=}"
+        return f"{self.__class__.__name__} {self.uuid=} {self.payload_type=} {self.expires=}"
 
 
 class ChannelBox:
@@ -85,14 +86,12 @@ class ChannelBox:
         channel: Channel,
         group_name: str = "default",
     ) -> ChannelAddStatusEnum:
-        """Add channel to  group.
+        """Add channel to group.
 
         Args:
-            channel (Channel): Instance of Channel class.
+            channel (Channel): Instance of Channel class
             group_name (str): Group name
 
-        Returns:
-            ChannelAddStatus: _description_
         """
         assert group_name, "Group name must to be set."
 
@@ -114,12 +113,8 @@ class ChannelBox:
         """Remove channel from group.
 
         Args:
-            channel (Channel): _description_
-            group_name (str): _description_
-
-
-        Returns:
-            ChannelRemoveStatusEnum: _description_
+            channel (Channel): Instance of Channel class
+            group_name (str): Group name
         """
         if channel in cls.CHANNEL_GROUPS.get(group_name, {}):
             try:
@@ -148,12 +143,10 @@ class ChannelBox:
         """Send payload to all channels connected to group.
 
         Args:
-            group_name (str, optional): _description_. Defaults to "".
-            payload (dict, optional): _description_. Defaults to {}.
-            save_history (bool, optional): _description_. Defaults to False.
+            group_name (str, optional): Group name
+            payload (dict, optional): Payload to channel
+            save_history (bool, optional): Save message history. Defaults to False.
 
-        Returns:
-            GroupSendStatus: _description_
         """
         assert group_name, "Group name must to be set."
 
