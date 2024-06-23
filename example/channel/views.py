@@ -7,24 +7,38 @@ from starlette.endpoints import WebSocketEndpoint
 from starlette.responses import JSONResponse
 from starlette.endpoints import HTTPEndpoint
 from starlette.responses import HTMLResponse
-from settings import SOCKET
 
 
 class WsChatEndpoint(WebSocketEndpoint):
-
     async def on_connect(self, websocket):
-        sprint('Channel.on_connect', c="green")
-        group_name = websocket.query_params.get("group_name")  # group name */ws?group_name=MyChat
+        sprint(
+            f"{self.__class__.__name__}",
+            c="green",
+        )
+        group_name = websocket.query_params.get(
+            "group_name"
+        )  # group name */ws?group_name=MyChat
         if group_name:
-            channel = Channel(websocket, expires=60*60, encoding="json") # define user channel
-            status = await ChannelBox.channel_add(group_name, channel) # add channel to named group
+            channel = Channel(
+                websocket,
+                expires=60 * 60,
+                payload_type="json",
+            )  # create user channel
+            channel_add_status = await ChannelBox.add_channel_to_group(
+                channel=channel,
+                group_name=group_name,
+            )  # add channel to named group
+            sprint(channel_add_status)
         await websocket.accept()
 
     async def on_receive(self, websocket, data):
-        sprint(f'Channel.on_receive data [{data}]', c="green")
+        sprint(
+            f"{self.__class__.__name__}",
+            c="green",
+        )
         data = json.loads(data)
         message = data["message"]
-        username = data["username"]     
+        username = data["username"]
 
         if message.strip():
             payload = {
@@ -33,7 +47,12 @@ class WsChatEndpoint(WebSocketEndpoint):
             }
             group_name = websocket.query_params.get("group_name")
             if group_name:
-                await ChannelBox.group_send(group_name, payload, history=True)
+                await ChannelBox.group_send(
+                    group_name=group_name,
+                    payload=payload,
+                    save_history=True,
+                )
+
 
 html_text = """
 <!DOCTYPE html>
@@ -47,13 +66,13 @@ html_text = """
             <div class="card">
                 <div class="card-header">
                     <h5 class="mt-2">MyChat group (open in different browsers)</h5>
-                    <h5>channel-box == 0.5.0</h5>
+                    <h5>channel-box == 1.0.0</h5>
                     <ul>
-                        <li><a href="http://{{ SOCKET }}/message" target="_blank">Send message from another view</a></li>
-                        <li><a href="http://{{ SOCKET }}/groups" target="_blank">Show groups</a></li>
-                        <li><a href="http://{{ SOCKET }}/groups-flush" target="_blank">Flush groups</a></li>
-                        <li><a href="http://{{ SOCKET }}/history" target="_blank">Show history</a></li>
-                        <li><a href="http://{{ SOCKET }}/history-flush" target="_blank">Flush history</a></li>
+                        <li><a href="http://{{ SOCKET }}/send-message" target="_blank">Send message from another view</a></li>
+                        <li><a href="http://{{ SOCKET }}/show-groups" target="_blank">Show groups</a></li>
+                        <li><a href="http://{{ SOCKET }}/flush-groups" target="_blank">Flush groups</a></li>
+                        <li><a href="http://{{ SOCKET }}/show-history" target="_blank">Show history</a></li>
+                        <li><a href="http://{{ SOCKET }}/flush-history" target="_blank">Flush history</a></li>
                     </ul>
                 </div>
                 <div class"card-body">   
@@ -106,42 +125,48 @@ html_text = """
 </html>
 """
 
-class Chat(HTTPEndpoint):
-    async def get(self, request):  
-        sprint('Chat.get', c="green")    
-        template = Template(html_text)      
-        return HTMLResponse(template.render(SOCKET=SOCKET))
 
-class Message(HTTPEndpoint):
-    async def get(self, request):   
-        sprint('Message.get', c="green")          
-        await ChannelBox.group_send(group_name="MyChat", payload={"username": "Any part of your code", "message": "Hello World"}, history=True)   
+class Chat(HTTPEndpoint):
+    async def get(self, request):
+        sprint("Chat.get", c="green")
+        template = Template(html_text)
+        return HTMLResponse(template.render(SOCKET="127.0.0.1:8888"))
+
+
+class SendMessage(HTTPEndpoint):
+    async def get(self, request):
+        sprint("Message.get", c="green")
+        await ChannelBox.group_send(
+            group_name="MyChat",
+            payload={"username": "Any part of your code", "message": "Hello World"},
+            history=True,
+        )
         return JSONResponse({"message": "success"})
 
-class Groups(HTTPEndpoint):
-    async def get(self, request):  
-        sprint('Groups.get', c="green")                 
-        groups = await ChannelBox.groups()
+
+class ShowGroups(HTTPEndpoint):
+    async def get(self, request):
+        sprint("Groups.get", c="green")
+        groups = await ChannelBox.show_groups()
         return HTMLResponse(f"{groups}")
 
-class GroupsFlush(HTTPEndpoint):
-    async def get(self, request): 
-        sprint('GroupsFlush.get', c="green")    
-        await ChannelBox.groups_flush()            
-        return JSONResponse({"flush": "success"})   
 
-class History(HTTPEndpoint):
-    async def get(self, request):   
-        sprint('History.get', c="green")   
-        history = await ChannelBox.history()
-        return HTMLResponse(f"{history}")
-
-class HistoryFlush(HTTPEndpoint):
-    async def get(self, request):  
-        sprint('HistoryFlush.get', c="green")
-        await ChannelBox.history_flush()             
+class FlushGroups(HTTPEndpoint):
+    async def get(self, request):
+        sprint("GroupsFlush.get", c="green")
+        await ChannelBox.flush_groups()
         return JSONResponse({"flush": "success"})
 
 
+class ShowHistory(HTTPEndpoint):
+    async def get(self, request):
+        sprint("History.get", c="green")
+        history = await ChannelBox.show_history()
+        return HTMLResponse(f"{history}")
 
 
+class FlushHistory(HTTPEndpoint):
+    async def get(self, request):
+        sprint("HistoryFlush.get", c="green")
+        await ChannelBox.flush_history()
+        return JSONResponse({"flush": "success"})
