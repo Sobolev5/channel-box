@@ -5,7 +5,7 @@ you send messages to named websocket channels from any part of your code.
 Example of use:
 - group chats
 - notifications from backend
-- alerts 
+- alerts for user groups
 
 
 ```no-highlight
@@ -18,21 +18,12 @@ To install run:
 pip install channel-box
 ```
 
-## Full working example [1] `example/app.py`
+## Full working example
 ```sh
 https://channel-box.andrey-sobolev.ru/
 https://github.com/Sobolev5/channel-box/tree/master/example
 ```
 
-## Full working example [2]
-```sh
-http://89.108.77.63:1025/
-https://github.com/Sobolev5/LordaeronChat  
-
-```
-  
-___
-   
 
 ## NGINX websocket setup
 ```sh
@@ -52,16 +43,26 @@ from channel_box import Channel, ChannelBox
 class WsChatEndpoint(WebSocketEndpoint):
 
     async def on_connect(self, websocket):
-        group_name = websocket.query_params.get("group_name")  # group name */ws?group_name=MyChat
+        group_name = websocket.query_params.get(
+            "group_name"
+        )  # group name */ws?group_name=MyChat
         if group_name:
-            channel = Channel(websocket, expires=60*60, encoding="json") # define user channel
-            channel = await ChannelBox.channel_add(group_name, channel) # add user channel to named group
+            channel = Channel(
+                websocket,
+                expires=60 * 60,
+                payload_type="json",
+            )  # Create new user channel
+            channel_add_status = await ChannelBox.add_channel_to_group(
+                channel=channel,
+                group_name=group_name,
+            )  # Add channel to named group
+            sprint(channel_add_status)
         await websocket.accept()
 
     async def on_receive(self, websocket, data):
         data = json.loads(data)
         message = data["message"]
-        username = data["username"]     
+        username = data["username"]
 
         if message.strip():
             payload = {
@@ -70,31 +71,43 @@ class WsChatEndpoint(WebSocketEndpoint):
             }
             group_name = websocket.query_params.get("group_name")
             if group_name:
-                await ChannelBox.group_send(group_name, payload) # send to all users channels
-```
+                await ChannelBox.group_send(
+                    group_name=group_name,
+                    payload=payload,
+                    save_history=True,
+                ) # Send to all user channels
+
 
 ## Send messages 
 Send message to any channel from any part of your code:
+
 ```python
 from channel_box import ChannelBox
 
-await ChannelBox.channel_send(channel_name="MyChat", payload={"username": "Message from any part of your code", "message": "hello world"}, history=True) 
+await ChannelBox.channel_send(
+    group_name="MyChat", 
+    payload={
+        "username": "Message from any part of your code", 
+        "message": "hello world"
+    }, 
+    save_history=True,
+) 
 ```
 
-Get & flush channels:
+Show & flush groups:
 ```python
 from channel_box import ChannelBox
 
-await ChannelBox.channels() 
-await ChannelBox.channels_flush()  
+await ChannelBox.show_groups() 
+await ChannelBox.flush_groups()  
 ```
 
-Get & flush history:
+Show & flush history:
 ```python
 from channel_box import ChannelBox
 
-await ChannelBox.history() 
-await ChannelBox.history_flush()
+await ChannelBox.show_history() 
+await ChannelBox.flush_history()
 ```
 
 ## Tests
