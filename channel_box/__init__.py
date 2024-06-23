@@ -1,3 +1,6 @@
-from .src import (
-    Channel, ChannelBox
-)
+from .src import Channel, ChannelBox
+
+__all__ = [
+    "Channel",
+    "ChannelBox",
+]
