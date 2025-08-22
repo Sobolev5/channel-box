@@ -51,11 +51,10 @@ class WsChatEndpoint(WebSocketEndpoint):
                 expires=60 * 60,
                 payload_type="json",
             )  # Create new user channel
-            channel_add_status = await ChannelBox.add_channel_to_group(
+            await ChannelBox.add_channel_to_group(
                 channel=channel,
                 group_name=group_name,
             )  # Add channel to named group
-            sprint(channel_add_status)
         await websocket.accept()
 
     async def on_receive(self, websocket, data):
