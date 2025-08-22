@@ -20,7 +20,6 @@ pip install channel-box
 
 ## Full working example
 ```sh
-https://channel-box.andrey-sobolev.ru/
 https://github.com/Sobolev5/channel-box/tree/master/example
 ```
 
