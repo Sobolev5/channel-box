@@ -13,7 +13,7 @@ from .views import FlushHistory
 
 routes = [
     WebSocketRoute("/chat_ws", WsChatEndpoint),
-    Route("/chat1", endpoint=Chat),
+    Route("/", endpoint=Chat),
     Route("/chat1", endpoint=Chat1),
     Route("/chat2", endpoint=Chat2),
     Route(
