@@ -13,4 +13,7 @@ routes = [
 ]
 
 
-app = Starlette(debug=True, routes=routes)
+app = Starlette(
+    debug=True,
+    routes=routes,
+)

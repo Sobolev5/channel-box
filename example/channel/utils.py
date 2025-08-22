@@ -1,4 +1,26 @@
-html_template = """
+main_template = """
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Open this chat in different browsers</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container mt-4">        
+            <div class="card">
+                <div class="card-header">
+                    <ul>
+                        <li><a href="/chat1" target="_blank">Chat 1</a></li>
+                        <li><a href="/chat2" target="_blank">Chat 2</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
+"""
+
+chat_template = """
 <!DOCTYPE html>
 <html>
     <head>
@@ -10,7 +32,7 @@ html_template = """
             <div class="card">
                 <div class="card-header">
                     <h5 class="mt-2">Open this chat in different browsers</h5>
-                    <h6>channel-box == 1.0.0</h6>
+                    <h6>channel-box == 1.1.0</h6>
                     <ul>
                         <li><a href="http://{{ SOCKET }}/send-message-from-any-part-of-your-code" target="_blank">Send message from any part of your code</a></li>
                         <li><a href="http://{{ SOCKET }}/show-groups" target="_blank">Show groups</a></li>
@@ -40,9 +62,9 @@ html_template = """
                 </div>
             </div>
             <script>
-                var ws = new WebSocket("ws://{{ SOCKET }}/chat_ws?group_name=MyChat"); 
+                var ws = new WebSocket("ws://{{ SOCKET }}/chat_ws?group_name={{ GROUP_NAME }}"); 
                 ws.onopen = function(event) {
-                    console.log('Connected to websocket. Channel MyChat is open now.')
+                    console.log('Connected to websocket. Channel {{ GROUP_NAME }} is open now.')
                 };
                 ws.onmessage = function(event) {
                     console.log('Message received %s', event.data)
