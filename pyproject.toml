@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "channel-box"
-version = "1.1.0"
+version = "1.1.1"
 description = ""
 authors = ["Sobolev Andrey <email.asobolev@gmail.com>"]
 readme = "README.md"
