@@ -1,42 +1,72 @@
 import pytest
+
 from unittest.mock import MagicMock
 from channel_box import Channel, ChannelBox
 from starlette.websockets import WebSocket
 
 
-@pytest.mark.asyncio
-async def test_channel_box():
-    group_name = "test"
-    mock = MagicMock(spec=WebSocket)  # mock starlette.websockets.WebSocket
+@pytest.fixture
+def mock_websocket():
+    mock = MagicMock(spec=WebSocket)
     mock.send.return_value = None
-    channel = Channel(websocket=mock, expires=60 * 60, encoding="json")
+    return mock
 
-    # add channel
-    status = await ChannelBox.channel_add(group_name, channel)
-    assert status.name == "ADDED"
 
-    # remove channel
-    status = await ChannelBox.channel_remove(group_name, channel)
-    assert status.name == "GROUP_REMOVED"
+@pytest.mark.asyncio
+async def test_channel_box(
+    mock_websocket,
+):
+    group_name = "test_group"
 
-    # groups
-    await ChannelBox.channel_add(group_name, channel)
-    groups = await ChannelBox.groups()
-    assert groups
+    channel = Channel(
+        websocket=mock_websocket,
+        expires=60 * 60,
+        payload_type="json",
+    )
 
-    await ChannelBox.groups_flush()
-    groups = await ChannelBox.groups()
+    await ChannelBox.add_channel_to_group(
+        channel=channel,
+        group_name=group_name,
+    )
+    groups = await ChannelBox.get_groups()
+    assert group_name in groups
+    assert groups[group_name][channel] == ...
+
+    await ChannelBox.remove_channel_from_group(
+        channel=channel,
+        group_name=group_name,
+    )
+    groups = await ChannelBox.get_groups()
     assert not groups
 
-    # group send
-    await ChannelBox.channel_add(group_name, channel)
-    status = await ChannelBox.group_send(group_name, {"hello": "world"}, history=True)
-    assert status.name == "GROUP_SEND"
+    await ChannelBox.add_channel_to_group(
+        channel=channel,
+        group_name=group_name,
+    )
+    groups = await ChannelBox.get_groups()
+    assert groups
+    assert len(groups) == 1
 
-    # history
-    history = await ChannelBox.history()
+    await ChannelBox.flush_groups()
+    groups = await ChannelBox.get_groups()
+    assert not groups
+
+    await ChannelBox.add_channel_to_group(
+        channel=channel,
+        group_name=group_name,
+    )
+
+    await ChannelBox.group_send(
+        group_name=group_name,
+        payload={"hello": "world"},
+        save_history=True,
+    )
+
+    history = await ChannelBox.get_history()
     assert history
+    assert len(history) == 1
 
-    await ChannelBox.history_flush()
-    history = await ChannelBox.history()
+    await ChannelBox.flush_history()
+
+    history = await ChannelBox.get_history()
     assert not history

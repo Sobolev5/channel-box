@@ -1,4 +1,3 @@
-# v1
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: "v4.5.0"
@@ -7,7 +6,6 @@ repos:
       - id: debug-statements
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    # Ruff version.
     rev: "v0.4.9"
     hooks:
       - id: ruff-format
@@ -21,6 +19,4 @@ repos:
     hooks:
       - id: mypy
         exclude: (^migrations/|^cli.example/)
-#        additional_dependencies:
-#          - "pydantic>=2.7.3"
         args: [ --no-strict-optional, --ignore-missing-imports, --python-version=3.11 ]

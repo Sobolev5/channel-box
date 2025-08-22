@@ -3,7 +3,8 @@ from simple_print import sprint
 from jinja2 import Template
 from channel_box import Channel
 from channel_box import ChannelBox
-from .utils import html_template
+from .utils import main_template
+from .utils import chat_template
 from starlette.endpoints import WebSocketEndpoint
 from starlette.responses import JSONResponse
 from starlette.endpoints import HTTPEndpoint
@@ -25,11 +26,11 @@ class WsChatEndpoint(WebSocketEndpoint):
                 expires=60 * 60,
                 payload_type="json",
             )  # Create new user channel
-            channel_add_status = await ChannelBox.add_channel_to_group(
+            await ChannelBox.add_channel_to_group(
                 channel=channel,
                 group_name=group_name,
             )  # Add channel to named group
-            sprint(channel_add_status)
+
         await websocket.accept()
 
     async def on_receive(self, websocket, data):
@@ -62,8 +63,38 @@ class Chat(HTTPEndpoint):
             f"{self.__class__.__name__}",
             c="green",
         )
-        template = Template(html_template)
-        return HTMLResponse(template.render(SOCKET="127.0.0.1:8888"))
+        template = Template(main_template)
+        return HTMLResponse(template.render())
+
+
+class Chat1(HTTPEndpoint):
+    async def get(self, request):
+        sprint(
+            f"{self.__class__.__name__}",
+            c="green",
+        )
+        template = Template(chat_template)
+        return HTMLResponse(
+            template.render(
+                SOCKET="127.0.0.1:8888",
+                GROUP="MyChat1",
+            )
+        )
+
+
+class Chat2(HTTPEndpoint):
+    async def get(self, request):
+        sprint(
+            f"{self.__class__.__name__}",
+            c="green",
+        )
+        template = Template(chat_template)
+        return HTMLResponse(
+            template.render(
+                SOCKET="127.0.0.1:8888",
+                GROUP="MyChat2",
+            )
+        )
 
 
 class SendMessageFromAnyPartOfYourCode(HTTPEndpoint):
@@ -86,7 +117,7 @@ class ShowGroups(HTTPEndpoint):
             f"{self.__class__.__name__}",
             c="green",
         )
-        groups = await ChannelBox.show_groups()
+        groups = await ChannelBox.get_groups()
         return HTMLResponse(f"{groups}")
 
 
@@ -106,7 +137,7 @@ class ShowHistory(HTTPEndpoint):
             f"{self.__class__.__name__}",
             c="green",
         )
-        history = await ChannelBox.show_history()
+        history = await ChannelBox.get_history()
         return HTMLResponse(f"{history}")
 
 
