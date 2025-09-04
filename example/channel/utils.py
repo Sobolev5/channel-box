@@ -32,13 +32,14 @@ chat_template = """
             <div class="card">
                 <div class="card-header">
                     <h5 class="mt-2">Open this chat in different browsers</h5>
-                    <h6>channel-box == 1.1.0</h6>
+                    <h6>channel-box == 1.1.3</h6>
                     <ul>
                         <li><a href="http://{{ SOCKET }}/send-message-from-any-part-of-your-code" target="_blank">Send message from any part of your code</a></li>
                         <li><a href="http://{{ SOCKET }}/show-groups" target="_blank">Show groups</a></li>
                         <li><a href="http://{{ SOCKET }}/flush-groups" target="_blank">Flush groups</a></li>
                         <li><a href="http://{{ SOCKET }}/show-history" target="_blank">Show history</a></li>
                         <li><a href="http://{{ SOCKET }}/flush-history" target="_blank">Flush history</a></li>
+                        <li><a href="http://{{ SOCKET }}/clean-expired" target="_blank">Clean expired</a></li>
                     </ul>
                 </div>
                 <div class"card-body">   

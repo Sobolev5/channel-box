@@ -1,13 +1,17 @@
-import contextlib
+import logging
 import sys
 import os
 import time
 import uuid
+import datetime
 from .utils import (
     PayloadTypeEnum,
     ChannelMessageDC,
 )
 from starlette.websockets import WebSocket
+
+
+logger = logging.getLogger(__name__)
 
 
 class Channel:
@@ -84,7 +88,9 @@ class ChannelBox:
             cls.CHANNEL_GROUPS[group_name] = {}
 
         if channel not in cls.CHANNEL_GROUPS[group_name]:
-            cls.CHANNEL_GROUPS[group_name][channel] = ...
+            cls.CHANNEL_GROUPS[group_name][channel] = {
+                "created_at": datetime.datetime.now(tz=datetime.UTC)
+            }
 
     @classmethod
     async def remove_channel_from_group(
@@ -99,16 +105,15 @@ class ChannelBox:
             group_name (str): Group name
 
         """
-
         if channel in cls.CHANNEL_GROUPS.get(group_name, {}):
-            with contextlib.suppress(KeyError):
+            try:
                 del cls.CHANNEL_GROUPS[group_name][channel]
-
-        if not any(cls.CHANNEL_GROUPS.get(group_name, {})):
-            with contextlib.suppress(KeyError):
-                del cls.CHANNEL_GROUPS[group_name]
-
-        await cls._clean_expired()
+            except KeyError:
+                logger.warning(
+                    "Channel %s not found in group %s during cleanup",
+                    channel,
+                    group_name,
+                )
 
     @classmethod
     async def group_send(
@@ -125,7 +130,6 @@ class ChannelBox:
             save_history (bool, optional): Save message history. Defaults to False.
 
         """
-
         if save_history:
             if group_name not in cls.CHANNEL_GROUPS_HISTORY:
                 cls.CHANNEL_GROUPS_HISTORY[group_name] = []
@@ -172,16 +176,24 @@ class ChannelBox:
         cls.CHANNEL_GROUPS_HISTORY = {}
 
     @classmethod
-    async def _clean_expired(
+    async def clean_expired(
         cls,
     ) -> None:
         for group_name in cls.CHANNEL_GROUPS:
             for channel in cls.CHANNEL_GROUPS.get(group_name, {}):
                 is_expired = await channel._is_expired()
                 if is_expired:
-                    with contextlib.suppress(KeyError):
+                    try:
                         del cls.CHANNEL_GROUPS[group_name][channel]
+                    except KeyError:
+                        logger.warning(
+                            "Channel %s not found in group %s during cleanup",
+                            channel,
+                            group_name,
+                        )
 
             if not any(cls.CHANNEL_GROUPS.get(group_name, {})):
-                with contextlib.suppress(KeyError):
+                try:
                     del cls.CHANNEL_GROUPS[group_name]
+                except KeyError:
+                    logger.warning("Group %s not found during cleanup", group_name)

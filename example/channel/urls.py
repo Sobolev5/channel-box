@@ -10,6 +10,8 @@ from .views import ShowGroups
 from .views import FlushGroups
 from .views import ShowHistory
 from .views import FlushHistory
+from .views import CleanExpired
+
 
 routes = [
     WebSocketRoute("/chat_ws", WsChatEndpoint),
@@ -24,4 +26,5 @@ routes = [
     Route("/flush-groups", endpoint=FlushGroups),
     Route("/show-history", endpoint=ShowHistory),
     Route("/flush-history", endpoint=FlushHistory),
+    Route("/clean-expired", endpoint=CleanExpired),
 ]

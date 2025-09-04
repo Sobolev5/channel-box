@@ -1,12 +1,12 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: "v4.5.0"
+    rev: "v5.0.0"
     hooks:
       - id: check-merge-conflict
       - id: debug-statements
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.4.9"
+    rev: "v0.9.5"
     hooks:
       - id: ruff-format
         types_or: [ python, pyi, jupyter ]
@@ -15,7 +15,7 @@ repos:
         args: [ --fix, --exit-non-zero-on-fix ]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: "v1.10.0"
+    rev: "v1.13.0"
     hooks:
       - id: mypy
         exclude: (^migrations/|^cli.example/)
