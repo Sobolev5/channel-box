@@ -32,7 +32,7 @@ chat_template = """
             <div class="card">
                 <div class="card-header">
                     <h5 class="mt-2">Open this chat in different browsers</h5>
-                    <h6>channel-box == 1.1.3</h6>
+                    <h6>channel-box == 1.1.4</h6>
                     <ul>
                         <li><a href="http://{{ SOCKET }}/send-message-from-any-part-of-your-code" target="_blank">Send message from any part of your code</a></li>
                         <li><a href="http://{{ SOCKET }}/show-groups" target="_blank">Show groups</a></li>
