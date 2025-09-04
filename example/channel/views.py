@@ -238,3 +238,22 @@ class FlushHistory(HTTPEndpoint):
                 "flush": "success",
             },
         )
+
+
+class CleanExpired(HTTPEndpoint):
+    async def get(
+        self,
+        request,
+    ):
+        sprint(
+            f"{self.__class__.__name__}",
+            c="green",
+        )
+
+        await ChannelBox.clean_expired()
+
+        return JSONResponse(
+            {
+                "clean_expired": "success",
+            },
+        )

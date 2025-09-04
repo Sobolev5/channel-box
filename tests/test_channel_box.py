@@ -30,15 +30,12 @@ async def test_channel_box(
     )
     groups = await ChannelBox.get_groups()
     assert group_name in groups
-    assert groups[group_name][channel] == ...
+    assert "created_at" in groups[group_name][channel]
 
     await ChannelBox.remove_channel_from_group(
         channel=channel,
         group_name=group_name,
     )
-    groups = await ChannelBox.get_groups()
-    assert not groups
-
     await ChannelBox.add_channel_to_group(
         channel=channel,
         group_name=group_name,

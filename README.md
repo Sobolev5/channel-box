@@ -110,6 +110,13 @@ print(history)
 await ChannelBox.flush_history()
 ```
 
+Clean expired:
+```python
+from channel_box import ChannelBox
+
+await ChannelBox.clean_expired() 
+```
+
 ## Tests
 ```sh
 tox
