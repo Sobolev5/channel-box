@@ -46,17 +46,25 @@ class Channel:
     async def _send(self, payload: str) -> None:
         match self.payload_type:
             case PayloadTypeEnum.JSON.value:
-                await self.websocket.send_json(payload)
-
+                try:
+                    await self.websocket.send_json(payload)
+                except RuntimeError as error:
+                    logging.warning(error)
             case PayloadTypeEnum.TEXT.value:
-                await self.websocket.send_text(payload)
-
+                try:
+                    await self.websocket.send_text(payload)
+                except RuntimeError as error:
+                    logging.warning(error)
             case PayloadTypeEnum.BYTES.value:
-                await self.websocket.send_bytes(payload)
-
+                try:
+                    await self.websocket.send_bytes(payload)
+                except RuntimeError as error:
+                    logging.warning(error)
             case _:
-                await self.websocket.send(payload)
-
+                try:
+                    await self.websocket.send(payload)
+                except RuntimeError as error:
+                    logging.warning(error)
         self.last_active = time.time()  # renew last_active time for active connecitons
 
     async def _is_expired(self) -> bool:
