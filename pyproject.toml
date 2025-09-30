@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "channel-box"
-version = "1.1.4"
+version = "1.1.5"
 description = "ChannelBox is a package for FastAPI & Starlette that allows you to make named websocket channels."
 readme = "README.md"
 authors = [

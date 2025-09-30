@@ -48,22 +48,22 @@ class Channel:
             case PayloadTypeEnum.JSON.value:
                 try:
                     await self.websocket.send_json(payload)
-                except RuntimeError as error:
+                except Exception as error:
                     logging.warning(error)
             case PayloadTypeEnum.TEXT.value:
                 try:
                     await self.websocket.send_text(payload)
-                except RuntimeError as error:
+                except Exception as error:
                     logging.warning(error)
             case PayloadTypeEnum.BYTES.value:
                 try:
                     await self.websocket.send_bytes(payload)
-                except RuntimeError as error:
+                except Exception as error:
                     logging.warning(error)
             case _:
                 try:
                     await self.websocket.send(payload)
-                except RuntimeError as error:
+                except Exception as error:
                     logging.warning(error)
         self.last_active = time.time()  # renew last_active time for active connecitons
 
