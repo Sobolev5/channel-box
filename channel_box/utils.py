@@ -1,18 +1,24 @@
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
-from dataclasses import dataclass
-import uuid
-from uuid import UUID
+from uuid import UUID, uuid4
 
 
 class PayloadTypeEnum(Enum):
+    """Supported payload encoding types for WebSocket channels."""
+
     JSON = "json"
     TEXT = "text"
     BYTES = "bytes"
 
 
-@dataclass
+@dataclass(slots=True)
 class ChannelMessageDC:
+    """Data container for a channel message.
+
+    Stores the payload and metadata used for message history tracking.
+    """
+
     payload: str | bytes | dict
-    uuid: UUID = uuid.uuid4()
-    created: datetime = datetime.now(tz=UTC)
+    uuid: UUID = field(default_factory=uuid4)
+    created: datetime = field(default_factory=lambda: datetime.now(tz=UTC))

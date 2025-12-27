@@ -1,123 +1,199 @@
 # channel-box
-`channel-box` it is a package for Starlette & FastAPI frameworks that allows 
-you send messages to named websocket channels from any part of your code.
 
-Example of use:
-- group chats
-- notifications from backend
-- alerts for user groups
+`channel-box` is a lightweight async package for **Starlette** and **FastAPI**
+that allows you to send messages to **named WebSocket channels (groups)**
+from any part of your backend code.
 
+It is designed for simple real-time communication patterns without external
+brokers or heavy abstractions.
 
-```no-highlight
-https://github.com/Sobolev5/channel-box
-```
+---
 
-## Install
-To install run:
-```no-highlight
+## Features
+
+- Named WebSocket channels (groups)
+- Broadcast messages to all connected clients
+- Send messages from **any part of the backend**
+- Optional message history per group
+- Automatic cleanup of disconnected and expired connections
+- Fully async, compatible with FastAPI & Starlette
+- Zero external infrastructure (no Redis, no RabbitMQ)
+
+---
+
+## Typical use cases
+
+- Group chats  
+- Backend notifications  
+- Alerts for user groups  
+- Real-time status updates  
+- Internal dashboards  
+
+---
+
+## Installation
+
+```bash
 pip install channel-box
 ```
 
-## Full working example
-```sh
-https://github.com/Sobolev5/channel-box/tree/master/example
-```
+---
 
+## Basic usage example
 
-## NGINX websocket setup
-```sh
-http://nginx.org/en/docs/http/websocket.html
-```
+### WebSocket endpoint
 
-## Check uvicorn installation
-```sh
-pip install uvicorn[standard]
-```
-
-## Setup channel 
 ```python
+import json
 from starlette.endpoints import WebSocketEndpoint
 from channel_box import Channel, ChannelBox
+
 
 class WsChatEndpoint(WebSocketEndpoint):
 
     async def on_connect(self, websocket):
-        group_name = websocket.query_params.get(
-            "group_name"
-        )  # group name */ws?group_name=MyChat
-        if group_name:
-            channel = Channel(
-                websocket,
-                expires=60 * 60,
-                payload_type="json",
-            )  # Create new user channel
-            await ChannelBox.add_channel_to_group(
-                channel=channel,
-                group_name=group_name,
-            )  # Add channel to named group
+        group_name = websocket.query_params.get("group_name")
         await websocket.accept()
 
-    async def on_receive(self, websocket, data):
-        data = json.loads(data)
-        message = data["message"]
-        username = data["username"]
+        if not group_name:
+            return
 
-        if message.strip():
-            payload = {
-                "username": username,
-                "message": message,
-            }
-            group_name = websocket.query_params.get("group_name")
-            if group_name:
-                await ChannelBox.group_send(
-                    group_name=group_name,
-                    payload=payload,
-                    save_history=True,
-                ) # Send to all user channels
+        channel = Channel(
+            websocket=websocket,
+            expires=60 * 60,
+            payload_type="json",
+        )
+
+        await ChannelBox.add_channel_to_group(
+            channel=channel,
+            group_name=group_name,
+        )
+
+    async def on_receive(self, websocket, data):
+        payload = json.loads(data)
+
+        message = payload.get("message")
+        username = payload.get("username")
+
+        if not message:
+            return
+
+        group_name = websocket.query_params.get("group_name")
+
+        if group_name:
+            await ChannelBox.group_send(
+                group_name=group_name,
+                payload={
+                    "username": username,
+                    "message": message,
+                },
+                save_history=True,
+            )
 ```
 
-## Send messages 
-Send message to any channel from any part of your code:
+---
+
+## Send messages from anywhere in backend
 
 ```python
 from channel_box import ChannelBox
 
 await ChannelBox.group_send(
-    group_name="MyChat", 
+    group_name="MyChat",
     payload={
-        "username": "Message from any part of your code", 
-        "message": "hello world"
-    }, 
+        "username": "System",
+        "message": "Hello from backend",
+    },
     save_history=True,
-) 
+)
 ```
 
-Get & flush groups:
-```python
-from channel_box import ChannelBox
+---
 
-groups = await ChannelBox.get_groups() 
+## Groups management
+
+### Get active groups
+
+```python
+groups = await ChannelBox.get_groups()
 print(groups)
-await ChannelBox.flush_groups()  
 ```
 
-Get & flush history:
-```python
-from channel_box import ChannelBox
+### Flush all groups
 
-history = await ChannelBox.get_history() 
+```python
+await ChannelBox.flush_groups()
+```
+
+---
+
+## Message history
+
+### Get history
+
+```python
+history = await ChannelBox.get_history()
 print(history)
+```
+
+### Flush history
+
+```python
 await ChannelBox.flush_history()
 ```
 
-Clean expired:
-```python
-from channel_box import ChannelBox
+---
 
-await ChannelBox.clean_expired() 
+## Cleanup expired connections
+
+```python
+await ChannelBox.clean_expired()
 ```
+
+---
+
+## NGINX WebSocket configuration
+
+If you use NGINX as a reverse proxy, make sure WebSocket support is enabled:
+
+```text
+http://nginx.org/en/docs/http/websocket.html
+```
+
+---
+
+## Uvicorn
+
+```bash
+pip install uvicorn[standard]
+```
+
+---
+
+## Full working example
+
+```text
+https://github.com/Sobolev5/channel-box/tree/master/example
+```
+
+---
 
 ## Tests
-```sh
-tox
+
+```bash
+pytest
 ```
+
+---
+
+## Repository
+
+```text
+https://github.com/Sobolev5/channel-box
+```
+
+---
+
+## License
+
+MIT
