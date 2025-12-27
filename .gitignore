@@ -225,3 +225,6 @@ requirements.txt
 # pytest
 report.xml
 .DS_Store
+
+# PyPI credentials
+.pypirc

@@ -2,7 +2,7 @@ import setuptools
 
 
 __author__ = "Sobolev Andrey <email.asobolev@gmail.com>"
-__version__ = "1.1.5"
+__version__ = "1.2.0"
 
 
 with open("README.md", "r") as fh:
